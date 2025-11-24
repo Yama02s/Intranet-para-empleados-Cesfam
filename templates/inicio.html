@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{% static 'style.css' %}">
     
     <style>
-        /* Estilo extra para destacar los botones de jefatura/dirección */
+        
         .admin-panel-box {
             background-color: #e8f4f8;
             border: 2px solid #17a2b8;
@@ -33,7 +33,7 @@
         <h2>CESFAM</h2>
         <div class="header-user-info">
             <img src="https://via.placeholder.com/40" alt="Foto" class="rounded-circle">
-            <span class="ml-2">Hola, {{ user.first_name|default:user.username }}</span>
+            <span class="ml-2">Hola, {{ user.get_full_name|default:user.username }}</span>
             <a href="{% url 'login' %}" class="text-white ml-3 small">(Salir)</a>
         </div>
     </header>
@@ -58,9 +58,21 @@
                 <img src="https://via.placeholder.com/100" alt="Perfil" class="user-info-profile-pic">
                 <h3>{{ user.get_full_name|default:user.username }}</h3>
                 <p class="text-muted">{{ user.perfil.area.nombre|default:"Sin Área Asignada" }}</p>
-                
-                <div class="day-section mt-3">
-                    <h5>Días Disponibles: <strong>{{ dias_disponibles }}</strong></h5>
+    
+                <div class="day-section mt-3 text-left pl-4">
+                    <h5 class="mb-3">Días Administrativos Usados ({{ anio_actual }}): 
+                        <strong class="text-primary">{{ dias_usados }}</strong></h5>
+                    <h5>Vacaciones: 
+                        {% if estado_vacaciones == 'Esperando' %}
+                        <span class="badge badge-warning text-white">Esperando</span>
+                        {% elif estado_vacaciones == 'Aprobado' %}
+                        <span class="badge badge-success">Aprobado</span>
+                        {% elif estado_vacaciones == 'Rechazado' %}
+                        <span class="badge badge-danger">Rechazado</span>
+                        {% else %}
+                        <span class="badge badge-secondary">--</span>
+                        {% endif %}
+                    </h5>
                 </div>
             </div>
 
@@ -130,12 +142,18 @@
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
-                left: 'prev,next',
+                left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth'
+                right: 'dayGridMonth,timeGridWeek,timeGridDay' 
             },
-            events: '/api/eventos/', // Conectado a tu API de eventos
-            locale: 'es'
+            events: '/api/eventos/',
+            locale: 'es',
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                day: 'Día'
+            }
         });
         calendar.render();
     });

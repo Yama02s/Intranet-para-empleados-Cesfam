@@ -44,7 +44,7 @@ class Area(models.Model):
 class PerfilUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True)
-    rut = models.CharField(max_length = 10, validators= [MinLengthValidator(10), RegexValidator(r'^\d{10}$', 'El RUT debe tener 10 números incluyendo guión')])
+    rut = models.CharField(max_length = 10, validators= [MinLengthValidator(9), RegexValidator(regex=r'^\d{7,8}-[0-9kK]$', message='El RUT debe tener el formato 12345678-K (con guion y sin puntos)')])
     telefono = models.CharField(max_length = 12, validators= [MinLengthValidator(8), val_telefono])
     cargo = models.CharField(max_length = 100, validators= [MinLengthValidator(5)], blank = False, null = False)
     dias_libres = models.IntegerField(default = 0)
@@ -79,21 +79,18 @@ class SolicitudDiaLibre(models.Model):
     def __str__(self):
         return f"Solicitud de {self.solicitante.username} ({self.estado})"
     
-
-#modelo para subir documento
+#modelo para los documentos
 class Documento(models.Model):
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
-    archivo = models.FileField(
-        upload_to='documentos/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
-    )
+    archivo = models.FileField(upload_to='documentos/') 
+    importante = models.BooleanField(default=False, verbose_name="¿Es Importante?")
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.titulo
 
-#Modelo para la solicitud de vacaciones
+#Modelo para la solicitud de vacaciones/dia libre
 class SolicitudVacaciones(models.Model):
     ESTADOS = [
         ('pendiente', 'Pendiente'),
@@ -102,9 +99,16 @@ class SolicitudVacaciones(models.Model):
     ]
     solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solicitudes_vacaciones')
     area = models.ForeignKey(Area, on_delete=models.CASCADE, editable=False, null=True)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de envío")
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     motivo = models.TextField()
+    archivo_adjunto = models.FileField(
+        upload_to='solicitudes/vacaciones/', 
+        blank=True, 
+        null=True, 
+        verbose_name="Documento de Respaldo (Opcional)"
+    )
     estado = models.CharField(max_length=10, choices=ESTADOS, default='pendiente')
     gestionado_por = models.ForeignKey(
         User,
@@ -117,6 +121,37 @@ class SolicitudVacaciones(models.Model):
 
     def __str__(self):
         return f"Solicitud de vacaciones de {self.solicitante.username} ({self.estado})"
+    
+class SolicitudDiaLibre(models.Model):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solicitudes_creadas')
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, editable=False, null=True)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de envío")
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    motivo = models.TextField()
+    archivo_adjunto = models.FileField(
+        upload_to='solicitudes/dias_libres/', 
+        blank=True, 
+        null=True, 
+        verbose_name="Documento de Respaldo (Opcional)"
+    )
+    estado = models.CharField(max_length=10, choices=ESTADOS, default='pendiente')
+    gestionado_por = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='solicitudes_gestionadas'
+    )
+    fecha_gestion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Solicitud de {self.solicitante.username} ({self.estado})"
 
 #Modelo para la licencia medica
 class LicenciaMedica(models.Model):

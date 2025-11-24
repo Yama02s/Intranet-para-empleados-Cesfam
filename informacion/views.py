@@ -15,12 +15,29 @@ from .forms import DocumentoForm, SolicitudDiaLibreForm, SolicitudVacacionesForm
 
 @login_required
 def inicio_generico(request):
-    dias_totales = 15 
-    dias_usados = SolicitudDiaLibre.objects.filter(solicitante=request.user, estado='aprobado').count()
-    dias_disponibles = dias_totales - dias_usados
-
+    anio_actual = timezone.now().year
+    solicitudes_aprobadas = SolicitudDiaLibre.objects.filter(
+        solicitante=request.user, 
+        estado='aprobado',
+        fecha_inicio__year=anio_actual 
+    )
+    dias_usados = 0
+    for solicitud in solicitudes_aprobadas:
+        diferencia = (solicitud.fecha_fin - solicitud.fecha_inicio).days + 1
+        dias_usados += diferencia
+    ultima_vacacion = SolicitudVacaciones.objects.filter(solicitante=request.user).last()
+    estado_vacaciones = "Sin solicitud"
+    if ultima_vacacion:
+        if ultima_vacacion.estado == 'pendiente':
+            estado_vacaciones = "Esperando"
+        elif ultima_vacacion.estado == 'aprobado':
+            estado_vacaciones = "Aprobado"
+        elif ultima_vacacion.estado == 'rechazado':
+            estado_vacaciones = "Rechazado"
     context = {
-        'dias_disponibles': dias_disponibles,
+        'dias_usados': dias_usados,
+        'estado_vacaciones': estado_vacaciones,
+        'anio_actual': anio_actual,
     }
     return render(request, 'inicio.html', context)
 
@@ -49,27 +66,33 @@ def inicio_funcionario(request):
 
 def login(request):
     if request.method == 'POST':
-        usuario = request.POST.get('username')
+        usuario_input = request.POST.get('username')
         contrasena = request.POST.get('password')
-        user = authenticate(request, username=usuario, password=contrasena)
+        try:
+            perfil = PerfilUsuario.objects.get(rut=usuario_input)
+            nombre_usuario_real = perfil.user.username
+        except PerfilUsuario.DoesNotExist:
+            nombre_usuario_real = usuario_input
+        user = authenticate(request, username=nombre_usuario_real, password=contrasena)
 
         if user is not None:
             auth_login(request, user)
-
-            if user.groups.filter(name= 'Direccion').exists():
+            if user.groups.filter(name='Direccion').exists():
                 return redirect('inicio_direccion')
-            elif user.groups.filter(name__in = ['Subdireccion Administrativa', 'Subdireccion Clinica']).exists():
+            elif user.groups.filter(name__in=['Subdireccion Administrativa', 'Subdireccion Clinica']).exists():
                 return redirect('inicio_subdireccion')
-            elif user.groups.filter(name = 'Jefatura').exists():
+            elif user.groups.filter(name='Jefatura').exists():
                 return redirect('inicio_jefatura')
-            elif user.groups.filter(name = 'Funcionario').exists():
-                return redirect ('inicio_funcionario')
+            elif user.groups.filter(name='Funcionario').exists():
+                return redirect('inicio_funcionario')
             else:
-                messages.error(request, 'no se ha asignado un rol al usuario.')
+                if user.is_superuser:
+                     return redirect('/admin/')
+                messages.error(request, 'No se ha asignado un rol al usuario.')
                 return render(request, 'login.html')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
-            return render (request, 'login.html', {'error': 'Usuario o contraseña incorrectos.'})
+            messages.error(request, 'Credenciales incorrectas (Revise RUT o Contraseña).')
+            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos.'})
     
     return render(request, 'login.html')
 
@@ -165,12 +188,24 @@ def manipular_evento(request, evento_id):
     return JsonResponse({'error': 'Método no soportado'}, status=405)
 
 
-# --- Vistas de Gestión de Documentos ---
+# Vistas de Gestión de Documentos
 
 @login_required
 def lista_documentos(request):
-    documentos = Documento.objects.all().order_by('-fecha_subida')
-    return render(request, 'lista_documentos.html', {'documentos': documentos})
+    query = request.GET.get('q')
+    documentos = Documento.objects.all()
+    if query:
+        documentos = documentos.filter(
+            Q(titulo__icontains=query) | Q(descripcion__icontains=query)
+        )
+    documentos = documentos.order_by('-importante', '-fecha_subida')
+    grupos_permitidos = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    es_admin_docs = request.user.groups.filter(name__in=grupos_permitidos).exists()
+    context = {
+        'documentos': documentos,
+        'es_admin_docs': es_admin_docs
+    }
+    return render(request, 'lista_documentos.html', context)
 
 @login_required
 def subir_documento(request):
@@ -187,83 +222,108 @@ def subir_documento(request):
     
     return render(request, 'subir_documento.html', {'form': form})
 
+@login_required
+def eliminar_documento(request, documento_id):
+    grupos_permitidos = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    if not request.user.groups.filter(name__in=grupos_permitidos).exists():
+        return HttpResponseForbidden("No tienes permiso para eliminar documentos.")
+    
+    documento = get_object_or_404(Documento, pk=documento_id)
+    documento.archivo.delete() 
+    
+    documento.delete()
+    messages.success(request, 'Documento eliminado correctamente.')
+    return redirect('lista_documentos')
+
 
 # --- Vistas de Solicitud de Días Libres ---
 
 @login_required
-def crear_solicitud(request):
+def crear_solicitud(request): # DÍAS LIBRES
     if request.method == 'POST':
-        form = SolicitudDiaLibreForm(request.POST)
+        # AGREGAR request.FILES AQUÍ
+        form = SolicitudDiaLibreForm(request.POST, request.FILES) 
         if form.is_valid():
             solicitud = form.save(commit=False)
             solicitud.solicitante = request.user
-            
             try:
                 perfil = request.user.perfil
                 solicitud.area = perfil.area
             except PerfilUsuario.DoesNotExist:
                 pass 
-                
             solicitud.save()
-            if request.user.groups.filter(name = 'Direccion').exists():
-                return redirect ('inicio_direccion')
-            elif request.user.groups.filter(name__in = ['Subdireccion Administrativa', 'Subdireccion Clinica']).exists():
-                return redirect ('inicio_subdireccion')
-            elif request.user.groups.filter(name = 'Jefatura').exists():
-                return redirect ('inicio_jefatura')
-            elif request.user.groups.filter(name= 'Funcionario').exists():
-                return redirect ('inicio_funcionario')
-            else:
-                return redirect ('login')
+            messages.success(request, 'Solicitud de día libre enviada con éxito.')
+            # ... tu lógica de redirección ...
+            return redirect('inicio_funcionario') # Ejemplo simplificado
     else:
         form = SolicitudDiaLibreForm()
     
     return render(request, 'crear_solicitud.html', {'form': form})
 
 @login_required
-def revisar_solicitudes(request):
-    # Verificar permisos
-    if not request.user.groups.filter(name__in=['Jefatura', 'Direccion']).exists():
-        return HttpResponseForbidden("No tienes permiso.")
+def crear_solicitud_vacaciones(request): # VACACIONES
+    if request.method == 'POST':
+        # AGREGAR request.FILES AQUÍ
+        form = SolicitudVacacionesForm(request.POST, request.FILES)
+        if form.is_valid():
+            solicitud = form.save(commit=False)
+            solicitud.solicitante = request.user
+            try:
+                perfil = request.user.perfil
+                solicitud.area = perfil.area
+            except PerfilUsuario.DoesNotExist:
+                pass 
+            solicitud.save()
+            messages.success(request, 'Solicitud de vacaciones enviada con éxito.')
+            # ... tu lógica de redirección ...
+            return redirect('inicio_funcionario')
+    else:
+        form = SolicitudVacacionesForm()
+    
+    return render(request, 'crear_solicitud_vacaciones.html', {'form': form})
 
+@login_required
+def revisar_solicitudes(request):
+    grupos_superiores = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    es_superior = request.user.groups.filter(name__in=grupos_superiores).exists()
+    if not es_superior and not request.user.groups.filter(name='Jefatura').exists():
+        return HttpResponseForbidden("No tienes permiso para ver esta página.")
     solicitudes_pendientes = []
     area_del_jefe = None
-
-    # Lógica: Obtener el área donde este usuario es el JEFE
-    try:
-        area_del_jefe = Area.objects.get(jefe=request.user)
-        
-        # FILTRO CLAVE: Traer solo solicitudes de esa área y que estén pendientes
+    if es_superior:
         solicitudes_pendientes = SolicitudDiaLibre.objects.filter(
-            area=area_del_jefe,
             estado='pendiente'
         ).order_by('fecha_inicio')
-        
-    except Area.DoesNotExist:
-        # Si el usuario es Jefatura pero no se le ha asignado un Área en el admin
-        pass 
-
+    else:
+        try:
+            area_del_jefe = Area.objects.get(jefe=request.user)
+            solicitudes_pendientes = SolicitudDiaLibre.objects.filter(
+                area=area_del_jefe,
+                estado='pendiente'
+            ).order_by('fecha_inicio')
+        except Area.DoesNotExist:
+            pass 
     context = {
         'solicitudes': solicitudes_pendientes,
-        'area_del_jefe': area_del_jefe
+        'area_del_jefe': area_del_jefe, 
+        'es_superior': es_superior      
     }
     return render(request, 'revisar_solicitudes.html', context)
 
 @login_required
 def gestionar_solicitud(request, solicitud_id, accion):
-    if not request.user.groups.filter(name__in=['Jefatura', 'Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']).exists():
+    grupos_superiores = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    es_superior = request.user.groups.filter(name__in=grupos_superiores).exists()
+    if not es_superior and not request.user.groups.filter(name='Jefatura').exists():
         return HttpResponseForbidden("No tienes permiso.")
-
     solicitud = get_object_or_404(SolicitudDiaLibre, id=solicitud_id)
-
-    if request.user.groups.filter (name = 'Jefatura').exists():
+    if not es_superior:
         try:
             area_del_jefe = Area.objects.get(jefe=request.user)
             if solicitud.area != area_del_jefe:
                 return HttpResponseForbidden("Esta solicitud no pertenece a tu área.")
         except Area.DoesNotExist:
             return HttpResponseForbidden("No eres jefe de ningún área.")
-
     if accion == 'aprobar':
         solicitud.estado = 'aprobado'
         solicitud.gestionado_por = request.user
@@ -271,11 +331,9 @@ def gestionar_solicitud(request, solicitud_id, accion):
         solicitud.estado = 'rechazado'
         solicitud.gestionado_por = request.user
     else:
-        return HttpResponseForbidden("aacion no válida.")
-    
+        return HttpResponseForbidden("Acción no válida.")
     solicitud.save()
     return redirect('revisar_solicitudes')
-
 # --- Vistas de Solicitud de Vacaciones ---
 
 @login_required
@@ -310,42 +368,49 @@ def crear_solicitud_vacaciones(request):
 
 @login_required
 def revisar_solicitudes_vacaciones(request):
-    if not request.user.groups.filter(name__in=['Jefatura', 'Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']).exists():
+    grupos_superiores = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    es_superior = request.user.groups.filter(name__in=grupos_superiores).exists()
+    if not es_superior and not request.user.groups.filter(name='Jefatura').exists():
         return HttpResponseForbidden("No tienes permiso para ver esta página.")
-
+    solicitudes_pendientes = []
     area_del_jefe = None
-    try:
-        area_del_jefe = Area.objects.get(jefe=request.user)
-    except Area.DoesNotExist:
-        pass 
-
-    if area_del_jefe:
+    if es_superior:
         solicitudes_pendientes = SolicitudVacaciones.objects.filter(
-            area=area_del_jefe,
             estado='pendiente'
         ).order_by('fecha_inicio')
     else:
-        solicitudes_pendientes = []
-
+        try:
+            area_del_jefe = Area.objects.get(jefe=request.user)
+            solicitudes_pendientes = SolicitudVacaciones.objects.filter(
+                area=area_del_jefe,
+                estado='pendiente'
+            ).order_by('fecha_inicio')
+        except Area.DoesNotExist:
+            pass 
     context = {
         'solicitudes': solicitudes_pendientes,
-        'area_del_jefe': area_del_jefe
+        'area_del_jefe': area_del_jefe,
+        'es_superior': es_superior
     }
     return render(request, 'revisar_solicitudes_vacaciones.html', context)
 
 @login_required
 def gestionar_solicitud_vacaciones(request, solicitud_id, accion):
-    if not request.user.groups.filter(name='Jefatura').exists():
+    grupos_superiores = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
+    es_superior = request.user.groups.filter(name__in=grupos_superiores).exists()
+
+    if not es_superior and not request.user.groups.filter(name='Jefatura').exists():
         return HttpResponseForbidden("No tienes permiso.")
 
     solicitud = get_object_or_404(SolicitudVacaciones, id=solicitud_id)
 
-    try:
-        area_del_jefe = Area.objects.get(jefe=request.user)
-        if solicitud.area != area_del_jefe:
-            return HttpResponseForbidden("Esta solicitud no pertenece a tu área.")
-    except Area.DoesNotExist:
-        return HttpResponseForbidden("No eres jefe de ningún área.")
+    if not es_superior:
+        try:
+            area_del_jefe = Area.objects.get(jefe=request.user)
+            if solicitud.area != area_del_jefe:
+                return HttpResponseForbidden("Esta solicitud no pertenece a tu área.")
+        except Area.DoesNotExist:
+            return HttpResponseForbidden("No eres jefe de ningún área.")
 
     if accion == 'aprobar':
         solicitud.estado = 'aprobado'
@@ -437,7 +502,16 @@ def lista_funcionarios(request):
     grupos_permitidos = ['Direccion', 'Subdireccion Administrativa', 'Subdireccion Clinica']
     if not request.user.groups.filter(name__in=grupos_permitidos).exists():
         return HttpResponseForbidden("Acceso denegado")
+    query = request.GET.get('q')
     funcionarios = User.objects.filter(is_superuser=False).select_related('perfil')
+    if query:
+        
+        funcionarios = funcionarios.filter(
+            Q(first_name__icontains=query) | 
+            Q(last_name__icontains=query) | 
+            Q(username__icontains=query) |
+            Q(perfil__rut__icontains=query)
+        )
     return render(request, 'crud/lista_funcionarios.html', {'funcionarios': funcionarios})
 
 @login_required
@@ -667,13 +741,14 @@ def dashboard_direccion(request):
         if user_id and user_id not in lista_user_id:
             lista_user_id.append(user_id)
     cantidad_online = len(lista_user_id)
-
-    solicitudes_pendientes = SolicitudDiaLibre.objects.filter(estado='pendiente').count()
+    pendientes_dias = SolicitudDiaLibre.objects.filter(estado='pendiente').count()
+    pendientes_vacaciones = SolicitudVacaciones.objects.filter(estado='pendiente').count()
     context = {
         'total_usuarios': total_usuarios,
         'total_jefes': total_jefes,
         'cantidad_online': cantidad_online,
-        'solicitudes_pendientes': solicitudes_pendientes
+        'pendientes_dias': pendientes_dias,     
+        'pendientes_vacaciones': pendientes_vacaciones 
     }
     return render(request, 'crud/dashboard.html', context)
 
@@ -699,3 +774,17 @@ def gestionar_reporte(request, reporte_id, accion):
         return redirect('avisos')
     reporte.save()
     return redirect('avisos')
+
+#lista de usuarios online
+
+@login_required
+def lista_usuarios_online(request):
+    sesiones_activas = Session.objects.filter(expire_date__gte=timezone.now())
+    lista_user_id = []
+    for sesion in sesiones_activas:
+        data = sesion.get_decoded()
+        user_id = data.get('_auth_user_id', None)
+        if user_id and user_id not in lista_user_id:
+            lista_user_id.append(user_id)
+    usuarios = User.objects.filter(id__in=lista_user_id)
+    return render(request, 'crud/lista_online.html', {'usuarios': usuarios})

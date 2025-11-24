@@ -2,41 +2,87 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📂 Repositorio de Documentos</h2>
-        
-        {% if user.groups.all.0.name == 'Direccion' or user.groups.all.0.name == 'Subdireccion Administrativa' or user.groups.all.0.name == 'Subdireccion Clinica' %}
-            <a href="{% url 'subir_documento' %}" class="btn btn-primary">
-                ⬆ Subir Nuevo Documento
-            </a>
-        {% endif %}
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2>📂 Repositorio de Documentos</h2>
+        </div>
+        <div class="col-md-6 text-right">
+            {% if es_admin_docs %}
+                <a href="{% url 'subir_documento' %}" class="btn btn-primary">
+                    ⬆ Subir Nuevo Documento
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="GET" action="" class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Buscar documento por nombre o descripción..." value="{{ request.GET.q|default:'' }}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="submit">🔍 Buscar</button>
+                    {% if request.GET.q %}
+                        <a href="{% url 'lista_documentos' %}" class="btn btn-outline-danger">❌ Limpiar</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
     </div>
 
     {% if documentos %}
         <div class="row">
             {% for doc in documentos %}
             <div class="col-md-4 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <div style="font-size: 3rem; color: #dc3545; margin-bottom: 10px;">
-                            📄
+                <div class="card h-100 shadow-sm {% if doc.importante %}border-danger{% endif %}">
+                    
+                    {% if doc.importante %}
+                        <div class="card-header bg-danger text-white text-center py-1">
+                            <strong>⚠️ IMPORTANTE</strong>
                         </div>
-                        <h5 class="card-title">{{ doc.titulo }}</h5>
-                        <p class="card-text text-muted small">{{ doc.descripcion|default:"Sin descripción" }}</p>
-                        <p class="text-muted " style="font-size: 0.8rem;">Subido el: {{ doc.fecha_subida|date:"d/m/Y" }}</p>
+                    {% endif %}
+
+                    <div class="card-body text-center">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">
+                            {% if '.pdf' in doc.archivo.url %}📄
+                            {% elif '.doc' in doc.archivo.url %}📝
+                            {% elif '.mp3' in doc.archivo.url %}🎵
+                            {% elif '.mp4' in doc.archivo.url %}🎬
+                            {% else %}📁{% endif %}
+                        </div>
+                        
+                        <h5 class="card-title text-truncate" title="{{ doc.titulo }}">
+                            {{ doc.titulo }}
+                        </h5>
+                        
+                        <p class="card-text text-muted small">
+                            {{ doc.descripcion|default:"Sin descripción" }}
+                        </p>
+                        
+                        <p class="text-muted" style="font-size: 0.8rem;">
+                            Subido el: {{ doc.fecha_subida|date:"d/m/Y" }}
+                        </p>
                     </div>
-                    <div class="card-footer bg-white border-top-0">
-                        <a href="{{ doc.archivo.url }}" target="_blank" class="btn btn-outline-dark btn-block btn-sm">
-                            👁 Ver / Descargar
+                    
+                    <div class="card-footer bg-white d-flex justify-content-between">
+                        <a href="{{ doc.archivo.url }}" target="_blank" class="btn btn-outline-dark btn-sm {% if not es_admin_docs %}btn-block{% else %}flex-grow-1 mr-1{% endif %}">
+                            👁 Ver
                         </a>
+
+                        {% if es_admin_docs %}
+                            <a href="{% url 'eliminar_documento' doc.id %}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('¿Estás seguro de eliminar este documento?');">
+                                🗑
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-info text-center">
-            No hay documentos subidos en el sistema actualmente.
+        <div class="alert alert-warning text-center">
+            No se encontraron documentos {% if request.GET.q %} para la búsqueda "{{ request.GET.q }}"{% endif %}.
         </div>
     {% endif %}
     

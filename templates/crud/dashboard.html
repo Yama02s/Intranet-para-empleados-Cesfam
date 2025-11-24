@@ -59,19 +59,46 @@
                     <small>Conectados en este momento</small>
                 </div>
                 <div class="card-footer bg-info border-0">
-                    <a href="{% url 'avisos' %}" class="text-white stretched-link" style="text-decoration: underline;">Ver quiénes son</a>
+                    <a href="{% url 'lista_usuarios_online' %}" class="text-white stretched-link" style="text-decoration: underline;">Ver quiénes son</a>
                 </div>
             </div>
         </div>
         
         <div class="col-md-12">
-            <div class="card bg-light border-warning shadow-sm">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="text-warning font-weight-bold">⚠️ Atención Requerida</h5>
-                        <p class="mb-0">Hay <strong>{{ solicitudes_pendientes }}</strong> solicitudes de días libres esperando aprobación en todo el consultorio.</p>
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0 font-weight-bold">⚠️ Solicitudes Pendientes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        
+                        <div class="col-md-6 border-right">
+                            <h3 class="display-4">{{ pendientes_dias }}</h3>
+                            <p class="text-muted font-weight-bold">Días Administrativos</p>
+                            
+                            {% if pendientes_dias > 0 %}
+                                <a href="{% url 'revisar_solicitudes' %}" class="btn btn-outline-dark btn-sm">
+                                    Revisar Días Libres
+                                </a>
+                            {% else %}
+                                <span class="text-success">✅ Todo al día</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h3 class="display-4">{{ pendientes_vacaciones }}</h3>
+                            <p class="text-muted font-weight-bold">Vacaciones</p>
+                            
+                            {% if pendientes_vacaciones > 0 %}
+                                <a href="{% url 'revisar_solicitudes_vacaciones' %}" class="btn btn-outline-dark btn-sm">
+                                    Revisar Vacaciones
+                                </a>
+                            {% else %}
+                                <span class="text-success">✅ Todo al día</span>
+                            {% endif %}
+                        </div>
+
                     </div>
-                    <a href="{% url 'revisar_solicitudes' %}" class="btn btn-warning">Revisar Ahora</a>
                 </div>
             </div>
         </div>

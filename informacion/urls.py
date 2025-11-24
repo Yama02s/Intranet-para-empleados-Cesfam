@@ -22,22 +22,24 @@ urlpatterns = [
     #Las rutas que tenemos para el calendario
     path('api/eventos/', views.calendario_eventos, name='calendario_eventos'),
     path('api/eventos/<int:evento_id>/', views.manipular_evento, name='manipular_evento'),
-
+    
+    #documentos
     path('documentos/', views.lista_documentos, name='lista_documentos'),
     path('documentos/subir/', views.subir_documento, name='subir_documento'),
+    path('documentos/eliminar/<int:documento_id>/', views.eliminar_documento, name='eliminar_documento'),
 
-    # --- NUEVAS URLs PARA SOLICITUDES ---
+    # NUEVAS URLs PARA SOLICITUDES
     path('solicitudes/crear/', views.crear_solicitud, name='crear_solicitud'),
     path('solicitudes/revisar/', views.revisar_solicitudes, name='revisar_solicitudes'),
     path('solicitudes/gestionar/<int:solicitud_id>/<str:accion>/', views.gestionar_solicitud, name='gestionar_solicitud'),
     path('solicitar-licencia/', views.crear_licencia_medica, name='solicitar_licencia'),
 
-    # --- URLs para Solicitudes de Vacaciones ---
+    #  URLs para Solicitudes de Vacaciones 
     path('solicitudes/vacaciones/crear/', views.crear_solicitud_vacaciones, name='crear_solicitud_vacaciones'),
     path('solicitudes/vacaciones/revisar/', views.revisar_solicitudes_vacaciones, name='revisar_solicitudes_vacaciones'),
     path('solicitudes/vacaciones/gestionar/<int:solicitud_id>/<str:accion>/', views.gestionar_solicitud_vacaciones, name='gestionar_solicitud_vacaciones'),
 
-    # --- URLs para Licencias Médicas ---
+    # URLs para Licencias Médicas 
     path('licencias/crear/', views.crear_licencia_medica, name='crear_licencia_medica'),
     path('licencias/revisar/', views.revisar_licencias_medicas, name='revisar_licencias_medicas'),
     path('licencias/gestionar/<int:licencia_id>/<str:accion>/', views.gestionar_licencia_medica, name='gestionar_licencia_medica'),
@@ -68,12 +70,12 @@ urlpatterns = [
     path('gestion/anuncios/eliminar/<int:anuncio_id>/', views.eliminar_anuncio_gestion, name='eliminar_anuncio'),
     # GESTION DARSHBOARD
     path('gestion/dashboard/', views.dashboard_direccion, name='dashboard_direccion'),
-#fin del crud
+    #fin del crud
+    # #rutas para reportes
+    path('avisos/gestionar/<int:reporte_id>/<str:accion>/', views.gestionar_reporte, name='gestionar_reporte'),
 
-#rutas para reportes
-path('avisos/gestionar/<int:reporte_id>/<str:accion>/', views.gestionar_reporte, name='gestionar_reporte'),
-
-
+    # ruta para ver usuarios online
+    path('gestion/online/', views.lista_usuarios_online, name='lista_usuarios_online'),
 
 
 

@@ -2,7 +2,7 @@ body {
     margin:0;
     padding:0;
     font-family: sans-serif;
-    background: linear-gradient(#0B3037, #134e5e);
+    background: linear-gradient(hsl(190, 67%, 13%), #134e5e);
     background-repeat: no-repeat;
     background-attachment: fixed;
     min-height: 100vh;
@@ -283,7 +283,7 @@ header h2 {
 }
 
 .user-info .day-section button:hover {
-    background-color: #1e4d7a;
+    background-color: #382669;
 }
 
 /* Ensure links are visible */
@@ -791,4 +791,8 @@ a:hover {
 
 .document-card-body h3 {
     margin-top: 0;
+}
+
+.card-header {
+    background-color: #2a6db0;
 }

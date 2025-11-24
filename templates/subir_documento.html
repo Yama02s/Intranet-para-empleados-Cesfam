@@ -3,33 +3,51 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h4>📤 Subir Documento Oficial</h4>
+                    <h3 class="mb-0">⬆ Subir Nuevo Documento</h3>
                 </div>
                 <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <div class="form-group">
-                            <label>Título del Documento</label>
-                            {{ form.titulo }}
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Descripción (Opcional)</label>
-                            {{ form.descripcion }}
+                            <label for="{{ form.titulo.id_for_label }}">Título del Documento</label>
+                            <input type="text" name="titulo" class="form-control" id="{{ form.titulo.id_for_label }}" required>
                         </div>
 
                         <div class="form-group">
-                            <label>Seleccionar Archivo (PDF)</label>
-                            {{ form.archivo }}
-                            <small class="form-text text-muted">Solo archivos PDF permitidos.</small>
+                            <label for="{{ form.descripcion.id_for_label }}">Descripción (Opcional)</label>
+                            <textarea name="descripcion" class="form-control" rows="3"></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block">Subir Documento</button>
-                        <a href="{% url 'lista_documentos' %}" class="btn btn-secondary btn-block">Cancelar</a>
+                        <div class="form-group">
+                            <label>Seleccionar Archivo</label>
+                            <div class="custom-file">
+                                <input type="file" name="archivo" class="custom-file-input" id="customFile" required>
+                                <label class="custom-file-label" for="customFile">Elegir archivo...</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <div class="alert alert-secondary d-flex align-items-center">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" name="importante" class="custom-control-input" id="checkImportante">
+                                    <label class="custom-control-label font-weight-bold" for="checkImportante">
+                                        ¿Marcar como Importante?
+                                    </label>
+                                </div>
+                                <small class="ml-3 text-muted">
+                                    (Aparecerá primero en la lista y con borde rojo)
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success btn-block btn-lg">Subir Documento</button>
+                            <a href="{% url 'lista_documentos' %}" class="btn btn-secondary btn-block">Cancelar</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -37,7 +55,11 @@
     </div>
 </div>
 
-<style>
-    input[type="text"], textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
-</style>
+<script>
+    document.querySelector('.custom-file-input').addEventListener('change', function(e){
+        var fileName = document.getElementById("customFile").files[0].name;
+        var nextSibling = e.target.nextElementSibling
+        nextSibling.innerText = fileName
+    })
+</script>
 {% endblock %}

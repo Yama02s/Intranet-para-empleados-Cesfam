@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class DocumentoForm(forms.ModelForm):
     class Meta:
         model = Documento
-        fields = ['titulo', 'descripcion', 'archivo']
+        fields = ['titulo', 'descripcion', 'archivo', 'importante']
 
 # Formulario para Solicitudes de Dias Libres
 class DateInput(forms.DateInput):
@@ -18,18 +18,35 @@ class DateInput(forms.DateInput):
 class SolicitudDiaLibreForm(forms.ModelForm):
     class Meta:
         model = SolicitudDiaLibre
-        fields = ['fecha_inicio', 'fecha_fin', 'motivo']
+        fields = ['fecha_inicio', 'fecha_fin', 'motivo', 'archivo_adjunto']
         widgets = {
             'fecha_inicio': DateInput(),
             'fecha_fin': DateInput(),
-            'motivo': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Escribe un breve motivo...'}),
+            'motivo': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'archivo_adjunto': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
         labels = {
             'fecha_inicio': 'Fecha de Inicio',
             'fecha_fin': 'Fecha de Término',
-            'motivo': 'Motivo de la solicitud',
+            'motivo': 'Motivo',
+            'archivo_adjunto': 'Adjuntar Justificativo (Si corresponde)',
         }
-
+class SolicitudVacacionesForm(forms.ModelForm):
+    class Meta:
+        model = SolicitudVacaciones
+        fields = ['fecha_inicio', 'fecha_fin', 'motivo', 'archivo_adjunto']
+        widgets = {
+            'fecha_inicio': DateInput(),
+            'fecha_fin': DateInput(),
+            'motivo': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'archivo_adjunto': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+        }
+        labels = {
+            'fecha_inicio': 'Fecha de Inicio',
+            'fecha_fin': 'Fecha de Término',
+            'motivo': 'Motivo',
+            'archivo_adjunto': 'Adjuntar Justificativo (Si corresponde)',
+        }
 # Formulario para Solicitudes de Vacaciones
 class SolicitudVacacionesForm(forms.ModelForm):
     class Meta:
@@ -88,7 +105,14 @@ class UserCreateForm(forms.ModelForm):
 class PerfilUpdateForm(forms.ModelForm):
     class Meta:
         model = PerfilUsuario
-        fields = ['area']
+        fields = ['rut', 'area']
+        widgets = {
+            'rut': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 12345678-9'}),
+            'area': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'rut': 'RUT (Con guion, sin puntos)'
+        }
     
 #crear y asignar area
 from django.contrib.auth.models import Group

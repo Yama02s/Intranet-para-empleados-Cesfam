@@ -1,19 +1,44 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Solicitar Días Libres</title>
-    <link rel="stylesheet" href="{% static 'css/solicitudes.css' %}">
-<body>
-    <div class="container">
-        <h1>Solicitud de Días Libres</h1>
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Enviar Solicitud</button>
-        </form>
-        <a href="{% url 'inicio' %}">Cancelar y Volver al Inicio</a>
+{% extends 'inicio.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header ">
+                    <h3 class="text-center mb-4">Gestionar Solicitudes</h3>
+                    
+                    <ul class="nav nav-tabs card-header-tabs justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link active font-weight-bold" href="#">
+                                📅 Día Administrativo
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-muted" href="{% url 'crear_solicitud_vacaciones' %}">
+                                🏖️ Vacaciones
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Solicitando: Día Administrativo / Libre</strong>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-block">Enviar Solicitud</button>
+                            <a href="{% url 'inicio' %}" class="btn btn-secondary btn-block">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
