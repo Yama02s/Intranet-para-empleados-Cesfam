@@ -2,7 +2,7 @@ body {
     margin:0;
     padding:0;
     font-family: sans-serif;
-    background: linear-gradient(#ffffff, #d0e8f2); /* blanco → celeste suave */
+    background: linear-gradient(#fdf2f2, #d0e8f2); /* blanco → celeste suave */
     background-repeat: no-repeat;
     background-attachment: fixed;
     min-height: 100vh;
@@ -16,7 +16,7 @@ body {
     width: 400px;
     padding: 40px;
     transform: translate(-50%, -50%);
-    background: #f0f8ff; /* azul muy claro, sobrio */
+    background: #fdf2f2; /* azul muy claro, sobrio */
     box-sizing: border-box;
     box-shadow: 0 15px 25px #a0b0c0; /* gris-azulado suave */
     border-radius: 10px;
@@ -42,7 +42,7 @@ body {
     border: none;
     border-bottom: 1px solid #6699cc; /* borde azul grisáceo */
     outline: none;
-    background: #ffffff; /* blanco limpio */
+    background: #fdf2f2; /* blanco limpio */
 }
 
 .login-box .user-box label {
@@ -81,7 +81,7 @@ body {
     background-color: #0073e6; /* azul consultorio para botones */
     border-radius: 100px;
     font-weight: 600;
-    color: #ffffff; /* texto blanco */
+    color: #fdf2f2; /* texto blanco */
     box-shadow: 0 0 0 2px #0059b3; /* borde sombra azul oscuro */
     cursor: pointer;
     overflow: hidden;
@@ -91,7 +91,7 @@ body {
 .animated-button svg {
     position: absolute;
     width: 24px;
-    fill: #ffffff;
+    fill: #fdf2f2;
     z-index: 9;
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -111,7 +111,7 @@ body {
     transform: translate(-50%, -50%);
     width: 20px;
     height: 20px;
-    background-color: #ffffff;
+    background-color: #fdf2f2;
     border-radius: 50%;
     opacity: 0;
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
@@ -164,7 +164,7 @@ body {
 /* General styles for inicio.html elements */
 header {
     background-color: #134e5e; /* Darker shade from gradient */
-    color: white;
+    color: #fdf2f2;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -174,7 +174,7 @@ header {
 
 header h2 {
     margin: 0;
-    color: white;
+    color: #fdf2f2;
 }
 
 .main-container {
@@ -194,16 +194,16 @@ header h2 {
 
 /* Calendar Box styles */
 .calendar {
-    background-color: rgb(0, 0, 0); /* Semi-transparent white */
+    background-color: #00c3ff; /* Semi-transparent white */
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Softer shadow */
-    color: white; /* Text color for calendar content */
+    color: #313131; /* Text color for calendar content */
     overflow-x: auto; /* Keep for calendar table */
 }
 
 .calendar h3 {
-    color: white; /* Ensure heading is visible */
+    color: #313131; /* Ensure heading is visible */
     text-align: center;
     margin-bottom: 15px;
 }
@@ -211,19 +211,19 @@ header h2 {
 .calendar table {
     border-collapse: collapse;
     width: 100%;
-    color: white; /* Ensure table text is white */
+    color: #c4c4c4; /* Ensure table text is white */
 }
 .calendar th, .calendar td {
-    border: 1px solid rgba(255, 255, 255, 0.3); /* Lighter border */
+    border: 1px solid rgb(0, 0, 0); /* Lighter border */
     padding: 8px;
     text-align: center;
 }
 .calendar th {
-    background-color: rgba(19, 78, 94, 0.7); /* Darker header for table */
-    color: white;
+    background-color: #ffffff(19, 78, 94, 0.7); /* Darker header for table */
+    color: rgb(0, 0, 0);
 }
 .calendar td {
-    background-color: rgba(255, 255, 255, 0.05); /* Slightly visible cells */
+    background-color: rgb(255, 255, 255); /* Slightly visible cells */
 }
 .calendar td.fc-day-today { /* FullCalendar specific class for today */
     background-color: rgba(255, 255, 255, 0.2);
@@ -232,11 +232,11 @@ header h2 {
 
 /* Card-like styles for announcement, user-info, report boxes */
 .announcement-box, .user-info, .report-box {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #00c3ff;
     border-radius: 10px;
     padding: 20px;
     box-shadow: none;
-    color: white;
+    color: rgb(230, 230, 230);
 }
 
 .announcement-box:hover, .user-info:hover, .report-box:hover {
@@ -253,8 +253,8 @@ header h2 {
 }
 
 .user-info .day-section button {
-    background-color: #2a6db0; /* Use a consistent button color */
-    color: white;
+    background-color: #121212; /* Use a consistent button color */
+    color: #121212;
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
@@ -263,12 +263,12 @@ header h2 {
 }
 
 .user-info .day-section button:hover {
-    background-color: #382669;
+    background-color: #ccbaff;
 }
 
 /* Ensure links are visible */
 a {
-    color: #fff; /* A contrasting color for links */
+    color: #000000; /* A contrasting color for links */
     text-decoration: none;
 }
 
@@ -323,7 +323,7 @@ a:hover {
 /* Styles for avisos.html */
 .chat-section {
     flex: 2; /* Takes more space */
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgb(255, 255, 255);
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -349,7 +349,7 @@ a:hover {
 }
 
 .message strong {
-    color: #f68e44; /* Highlight sender name */
+    color: #cecece; /* Highlight sender name */
 }
 
 .message.user1 {
@@ -443,11 +443,11 @@ a:hover {
 }
 
 .document-card {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgb(148, 148, 148);
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    color: white;
+    color: rgb(116, 116, 116);
     width: 250px; /* Fixed width for document cards */
     text-align: center;
     transition: transform 0.2s ease;
@@ -477,10 +477,10 @@ a:hover {
 }
 
 .announcement-card {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgb(79, 79, 79);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    color: white;
+    color: rgb(21, 244, 221);
     overflow: hidden; /* Ensures image corners are rounded */
     transition: transform 0.2s ease;
     text-decoration: none; /* Remove underline from link */
@@ -527,7 +527,7 @@ a:hover {
 }
 
 .day-section {
-    background-color: rgb(245, 239, 239);
+    background-color: #134e5e;
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
@@ -568,15 +568,15 @@ a:hover {
 
 /* Admin card styles */
 .card {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgb(238, 238, 238) !important;
     border-radius: 10px;
     margin-bottom: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    color: white;
+    color: rgb(49, 49, 49);
 }
 
 .card-header {
-    background-color: rgba(19, 78, 94, 0.7);
+    background-color: rgb(94, 19, 19);
     color: white;
     padding: 10px 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
@@ -664,12 +664,12 @@ a:hover {
 }
 
 .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #134e5e;
     color: #fff;
 }
 
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: #0c262d;
     transform: translateY(-2px);
 }
 
