@@ -10,27 +10,13 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'style.css' %}">
     
-    <style>
-        
-        .admin-panel-box {
-            background-color: #e8f4f8;
-            border: 2px solid #17a2b8;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
-        .jefatura-panel-box {
-            background-color: #e8f8e8;
-            border: 2px solid #28a745;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
-    </style>
 </head>
 <body>
     <header>
-        <h2>CESFAM</h2>
+        <h2 class="logo-title">
+            CESFAM
+            <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-navbar-small">
+        </h2>
         <div class="header-user-info">
             <img src="https://via.placeholder.com/40" alt="Foto" class="rounded-circle">
             <span class="ml-2">Hola, {{ user.get_full_name|default:user.username }}</span>
