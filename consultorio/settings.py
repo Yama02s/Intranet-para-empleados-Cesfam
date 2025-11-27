@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'cesfam_test',       
         'USER': 'postgres',      
-        'PASSWORD': '1234',
+        'PASSWORD': '1984',
         'HOST': 'localhost',            
         'PORT': '5432',                 
     }
@@ -137,3 +137,7 @@ STATICFILES_DIRS = [
 #archivos media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
